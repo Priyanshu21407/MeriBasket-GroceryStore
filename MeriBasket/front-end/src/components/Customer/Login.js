@@ -20,8 +20,11 @@ export default function Login (props) {
     if (props.type === 'Customer'){
         url = ('http://127.0.0.1:5000/api/login')
     }
-    else{
+    else if (props.type === 'RetailOutlet'){
         url = ('http://127.0.0.1:5000/api/Retail/Login')
+    }
+    else{
+        url = ('http://127.0.0.1:5000/api/Agent/Login')
     }
 
     fetch(url,options)  // API endpoint of your Flask server

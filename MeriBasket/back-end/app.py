@@ -40,16 +40,14 @@ def get_data():
     print("here")
     print(userID)
     print(password)
-    cnx=mysql.connection.cursor()
-    LoginQ="select * from customer where email_ID=\'"+userID+"\' and account_password=\'"+password+"\'"
-    cnx.execute(LoginQ)
+    cur=mysql.connection.cursor()
+    query="select * from customer where email_ID=\'"+userID+"\' and account_password=\'"+password+"\'"
+    cur.execute(query)
+    custdata=cur.fetchall()
     mysql.connection.commit()
-    data=cnx.fetchall()
-    if len(data)>0:
-        data=data[0]
-    print(data)
-    cnx.close()
-    return jsonify(data)
+    print(custdata)
+    cur.close()
+    return jsonify(custdata)
 
 @app.route('/api/Search',methods=['POST'])
 def get_products():
@@ -419,5 +417,135 @@ def order_accept():
     mysql.connection.commit()
     cur.close()
     return response
+
+@app.route("/api/Agent/Login",methods=['POST'])
+def agent_login() :
+    jsondata=request.json
+    uid=jsondata.get('uid')
+    password=jsondata.get('pass')
+    print("here")
+    print(uid)
+    print(password)
+    cur=mysql.connection.cursor()
+    query = "select * from deliveryagent where agent_id="+str(uid)+" and account_password=\'"+str(password)+"\'"
+    cur.execute(query)
+    agentD=cur.fetchall()
+    mysql.connection.commit()
+    cur.close()
+    return jsonify(agentD)
+
+@app.route("/api/Agent/Requests", methods=['POST'])
+def agent_delivery_req() :
+    jsondata=request.json
+    agent=jsondata.get('userDetail')
+    cur=mysql.connection.cursor()
+    agent=agent.split(',')
+    agentID=agent[0]
+    print(agent)
+    #cur.execute("select * from delivery_req where deli_agent_id="+str(agentID)+" and deli_req=1")
+
+    cur.execute("select d.deli_id, address_street, address_city, address_state from customer as c join schema1.order as o on c.customer_id=o.order_cust_id join delivery_req as d on d.deli_order_id=o.order_id where d.deli_agent_id="+str(agentID)+" and d.deli_req=0")
+
+    toAddress=cur.fetchall()
+
+    cur.execute("select d.deli_id, store_address_street, store_address_city, store_address_state from retailstore as r join schema1.order as o on r.retail_id=o.order_retail_id join delivery_req as d on d.deli_order_id=o.order_id where d.deli_agent_id="+str(agentID)+" and d.deli_req=0")
+    
+    fromAddress = cur.fetchall()
+    
+    sorted(fromAddress,key=lambda s:int(s[0]))
+    sorted(toAddress,key=lambda s:int(s[0]))
+
+    delreq = [fromAddress,toAddress]
+
+    result = []
+
+    for i in range(len(fromAddress)):
+        sub=[]
+        tempTo=list(toAddress[i])
+        sub.append(tempTo[0])
+        tempTo.pop(0)
+        tempTo=list(tempTo)
+        
+        tempFrom=list(fromAddress[i])
+        tempFrom.pop(0)
+        tempFrom=list(tempFrom)
+        sub.append(tempFrom)
+        sub.append(tempTo)
+        result.append(sub)
+    mysql.connection.commit()
+    cur.close()
+    return jsonify(result)
+
+@app.route("/api/Agent/Request_action", methods=['POST'])
+def request_action() :
+    jsondata=request.json
+    agent=jsondata.get('userDetail')
+    reqid=jsondata.get('request_id')
+    action=jsondata.get('action')
+    print(agent)
+    print("REQID",reqid)
+    agent=agent.split(',')
+    agentId=agent[0]
+    print("\n\nID",agentId)
+    response = ""
+    cur=mysql.connection.cursor()
+    if action == 'Accept': 
+        cur.execute("update delivery_req set deli_req=1 where deli_agent_id="+str(agentId)+" and deli_id="+str(reqid))
+        cur.execute("delete from delivery_req where deli_id="+str(reqid)+" and deli_req=0")
+
+        cur.execute("select * from delivery_req where deli_agent_id="+str(agentId)+" and deli_id="+str(reqid))
+        delidata=cur.fetchall()
+        delidata=list(delidata)
+        print("\n\nDATA",delidata)
+        delidata=delidata[0]
+
+        cur.execute("select * from delivery")
+        deliveryid=cur.fetchall()
+        currenttimedel=str(time.time())
+        cur.execute("insert into delivery values("+str(len(deliveryid)+1)+",\'"+str(currenttimedel)+"\',"+str(0)+","+str(agentId)+","+str(delidata[3])+")")
+        response = "Delivery accepted!"
+    else:
+        cur.execute("delete from delivery_req where deli_id="+str(reqid)+" and deli_agent_id="+str(agentId))
+        response = "Delivery request removed!"
+
+    mysql.connection.commit()
+    cur.close()
+
+    return response
+
+@app.route("/api/Agent/Ongoing",methods=['POST'])
+def ongoing_delivery() :
+    jsondata=request.json
+    agent=jsondata.get('userDetail')
+    agent=agent.split(',')
+    agentId=agent[0]
+    cur=mysql.connection.cursor()
+    cur.execute("select * from delivery where agent_id="+str(agentId)+" and delivery_status=0")
+    pendingDel=cur.fetchall()
+    print("DATAA",pendingDel)
+    mysql.connection.commit()
+    cur.close()
+    return jsonify(pendingDel)
+
+
+
+@app.route("/api/Agent/Ongoing_action",methods=['POST'])
+def mark_ongoing() :
+    jsondata=request.json
+    agent=jsondata.get('userDetail')
+    agent=agent.split(',')
+    agentId=agent[0]
+    delivery_id=jsondata.get('delivery_id')
+    cur=mysql.connection.cursor()
+    cur.execute("select * from delivery where agent_id="+str(agentId)+" and delivery_status=0")
+    pendingDel=cur.fetchall()
+
+    cur.execute("update delivery set delivery_status=1 where agent_id="+str(agentId)+" and delivery_id="+str(delivery_id))
+    response = "Marked as done for delivery: "+str(delivery_id)
+    mysql.connection.commit()
+    cur.close()
+
+    return response
+
 if __name__ == '__main__':
     app.run()
