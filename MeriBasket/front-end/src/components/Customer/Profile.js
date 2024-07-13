@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import '../../styles/profile.css'
+
 export default function Profile () {
     const [detail,setDetail] = useState();
     useEffect(()=>{
@@ -24,9 +26,24 @@ export default function Profile () {
     });
     },[]);
     return (
-        <div>
-            {detail}
-
+        <div className="profile-container">
+            {detail?
+            <div className="profile-details">
+                <h2>Profile Details</h2>
+                <div className="detail-item">
+                <strong>Name:</strong> {detail[0]}
+                </div>
+                <div className="detail-item">
+                <strong>Address:</strong> {detail[1]}
+                </div>
+                <div className="detail-item">
+                <strong>Contact:</strong> {detail[2]}
+                </div>
+                <div className="detail-item">
+                <strong>Email ID:</strong> {detail[3]}
+                </div>
+                </div>
+                : <></>}
         </div>
     )
 }

@@ -1,4 +1,7 @@
-import { useState } from "react"
+import { useState } from "react";
+import groceryIcon from '../../assets/logoGroceries.jpg'
+import '../../styles/Customer.css';
+
 export default function Homepage(){
     
     const [results,setResults] = useState(false)
@@ -64,24 +67,37 @@ export default function Homepage(){
     }
 
     return (
-    <div>
+    <div class = "home">
         
     <>
-      <h1>Home Page</h1>
-      <form onSubmit={home}>
-      <input name="query" type="text" placeholder='Search any grocery'></input>
-      <button type="submit"> Search</button>
-      </form>
-      </>
+      <div className="home-container">
+        <h1 className="welcome-text">Welcome Back!</h1>
+        <form className="search-form" onSubmit={home}>
+          <input className="search-input" name="query" type="text" placeholder="Search any grocery ..." />
+          <button className="search-button" type="submit">Search</button>
+        </form>
+      </div>
+    </>
     {results &&
-    <>
+    <div class = "products">
         <h1>products</h1>
-        {products.map((items,index) => (
-            <div key={index}>{items}
-            <button onClick={() => AddtoCart(index)}>Add to Cart</button>  
-            </div>
-        ))}
-        </>
+        <div className="product-list">
+            {products.map((item, index) => {
+            return (
+                <div key={index} className="product-item">
+                  <img src={groceryIcon} alt="Grocery" className="product-image" />
+                  <div className="product-details">
+                    <h3 className="product-name">{item[1]}</h3>
+                    <p className="product-stock">Stock: {item[2]}</p>
+                    <p className="product-price">Price: ${item[3]}</p>
+                    <p className="product-rating">Rating: {item[4]}/10</p>
+                    <button onClick={() => AddtoCart(index)} className="add-to-cart-button">Add to Cart</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
     }
     </div>
     )

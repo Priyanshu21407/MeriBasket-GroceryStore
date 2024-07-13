@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import '../../styles/cart.css'
+
 
 export default function Cart () {
     const [detail,setDetail] = useState([]);
+    const [path,setPath] = useState();
     useEffect(()=>{
         const userDetail = sessionStorage.getItem("user")
         console.log("details ",userDetail)
@@ -25,14 +28,34 @@ export default function Cart () {
     });
     },[]);
 
+
+    const handlePath = (ele) => {
+
+        setPath(ele);
+    
+      }
+
     return (
-        <div>
-            your cart<br/>
-            {detail.length ? <>{detail.map((item,index) => (
-                <div key={index}>{item}
-                </div>
-            ))}<br></br><NavLink to="/Checkout">Place order</NavLink></>: <>Cart is Empty</>}
-            
+        <div className="cart">
+             <h2>Your Cart</h2><br/>
+            {detail.length ? (
+        <>
+          <div className="cart-items">
+            {detail.map((item, index) => (
+              <div key={index} className="cart-item">
+                <div className="item-name">{item[0]}</div>
+                <div className="item-price">Price: ${item[1]}</div>
+                <div className="item-quantity">Quantity: {item[2]}</div>
+              </div>
+            ))}
+          </div>
+          <div className="checkout">
+            <button>Proceed to Checkout</button>
+          </div>
+        </>
+      ) : (
+        <div className="empty-cart">Cart is Empty</div>
+      )}
         </div>
     )
 }

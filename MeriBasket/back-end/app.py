@@ -23,7 +23,7 @@ CORS(app)
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '123'
+app.config['MYSQL_PASSWORD'] = '1234'
 app.config['MYSQL_DB'] = 'schema1'
 
 
@@ -230,6 +230,8 @@ def post_order():
     cur.execute(cartQ)
     CartData=cur.fetchall()
     cartSum=0
+    if len(CartData)==0: 
+        return "Cart Empty!"
     for i in CartData:
         cartSum+=i[1]
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import '../../styles/checkout.css'
 
 export default function Checkout () {
 
@@ -35,6 +36,7 @@ export default function Checkout () {
 
     const handlePayment = () => {
 
+
         console.log("placed")
         const userDetail = sessionStorage.getItem("user")
         console.log("details ",userDetail)
@@ -48,7 +50,7 @@ export default function Checkout () {
             body : JSON.stringify({userDetail,paymentOption})
         }
 
-        fetch('http://127.0.0.1:5000/api/post_order',options)  // API endpoint of your Flask server
+        fetch('http://127.0.0.1:5000/api/post_order',options)
         .then(response => response.text())
         .then(data => {
             console.log("data ",data)
@@ -61,31 +63,39 @@ export default function Checkout () {
     }
 
     return (
-        <div>
-            <div>Checkout</div>
-            <input type="radio" id="cod" value="cod" name="cod" checked={isChecked === 'cod'} onChange={() => handleOption('cod')} />
-            <label>Cash on Delivery</label>
-            <input type="radio" id="card" value="card" name="card" checked={isChecked === 'card'} onChange={() => handleOption('card')}/>
-            <label>Card</label>
-            <div>
-            <br></br>
-            <br></br>
-            Payment Type: 
-            </div>
-            <br></br>
-            <div>{isChecked === 'cod' ?
-            <div>
-                C.O.D.
-            </div> : 
-            <div>
-                Card Details: 
-                <div>
-                    <div>Name {detail[1]}</div>
-                    <div>Card Number {detail[2]}</div>
-                    <div>CVV {detail[3]}</div>
-                </div>
-            </div>}</div>
-            <button onClick={handlePayment}>Proceed</button>
-        </div>
+        <div className="checkout-container">
+      <h2>Checkout</h2>
+      <div className="payment-options">
+        <input
+          type="radio"
+          id="cod"
+          value="cod"
+          name="payment"
+          checked={isChecked === 'cod'}
+          onChange={() => handleOption('cod')}
+        />
+        <label htmlFor="cod">Cash on Delivery</label>
+        <input
+          type="radio"
+          id="card"
+          value="card"
+          name="payment"
+          checked={isChecked === 'card'}
+          onChange={() => handleOption('card')}
+        />
+        <label htmlFor="card">Card</label>
+      </div>
+      <div className="payment-details">
+        <p>Payment Type: {isChecked === 'cod' ? 'C.O.D.' : 'Card'}</p>
+        {isChecked === 'card' && (
+          <div className="card-details">
+            <div><strong>Name:</strong> {detail[1]}</div>
+            <div><strong>Card Number:</strong> {detail[2]}</div>
+            <div><strong>CVV:</strong> {detail[3]}</div>
+          </div>
+        )}
+      </div>
+      <button className="proceed-button" onClick={handlePayment}>Proceed</button>
+    </div>
     )
 }
